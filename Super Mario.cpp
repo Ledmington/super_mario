@@ -34,11 +34,11 @@ mat4 Model;
 unsigned int matrixProj;
 unsigned int matrixModel;
 
-Figura *cielo;
-Figura *prato;
-Figura *pavimento;
+Figura *cielo = NULL;
+Figura *prato = NULL;
+Figura *pavimento = NULL;
 
-const unsigned int num_stelle = 50;
+const unsigned int num_stelle = 2;
 const float velocita_stelle = width / (60.0 * 60.0); // ogni stella percorre tutta la larghezza dello schermo in un minuto (a 60fps)
 Figura *stelle[num_stelle] = { NULL };
 
@@ -94,6 +94,7 @@ void update(int value) {
 
 	muovi_stelle();
 	cout << "luna: " << luna[0]->v[0].x << ", " << luna[0]->v[0].y << endl;
+	cout << "ultima stella: " << stelle[num_stelle * 2 - 1]->v[0].x << ", " << stelle[num_stelle * 2 - 1]->v[0].y << endl;
 
 	glutTimerFunc(60, update, 0);
 	glutPostRedisplay();
@@ -113,6 +114,15 @@ void INIT_VAOs(void)
 	cielo = rettangolo(0, 1, 0, 1, blu_notte);
 	loadFigure(cielo);
 
+	// Luna
+	const float r_luna = 10;
+	const float cx_luna = randab(r_luna, width - r_luna);
+	const float cy_luna = height * 9 / 10;
+	luna[0] = ellisse(cx_luna, cy_luna, r_luna * 2, r_luna * 2, 30, 2 * PI, 0, bianco, bordo_luna); // alone
+	luna[1] = ellisse(cx_luna, cy_luna, r_luna, r_luna, 30, 2 * PI, 0, bianco, bianco); // luna
+	loadFigure(luna[0]);
+	loadFigure(luna[1]);
+
 	// Stelle
 	for (unsigned int i = 0; i < num_stelle; i++) {
 		const float cx = randab(0, width);
@@ -126,15 +136,6 @@ void INIT_VAOs(void)
 		stelle[2 * i + 1] = stella(cx, cy, raggio*2, raggio*2, raggio, raggio, 5, angle, bianco, giallo);
 		loadFigure(stelle[2 * i + 1]);
 	}
-
-	// Luna
-	const float r_luna = 10;
-	const float cx_luna = randab(r_luna, width-r_luna);
-	const float cy_luna = height * 9 / 10;
-	luna[0] = ellisse(cx_luna, cy_luna, r_luna*2, r_luna*2, 30, 2*PI, 0, bianco, bordo_luna); // alone
-	luna[1] = ellisse(cx_luna, cy_luna, r_luna, r_luna, 30, 2*PI, 0, bianco, bianco); // luna
-	loadFigure(luna[0]);
-	loadFigure(luna[1]);
 
 	// Prato
 	prato = rettangolo(0, 1, 0, 1, verde_prato);
@@ -171,21 +172,18 @@ void drawScene(void)
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(cielo);
 
+	// Luna
+	Model = mat4(1.0);
+	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
+	drawFigure(luna[0]);
+	drawFigure(luna[1]);
+
 	// Stelle
 	Model = mat4(1.0);
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	for (unsigned int i = 0; i < 2 * num_stelle; i++) {
 		drawFigure(stelle[i]);
 	}
-
-	/*
-	// Luna
-	Model = mat4(1.0);
-	Model = scale(Model, vec3(50, 50, 0));
-	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
-	drawFigure(luna[0]);
-	drawFigure(luna[1]);
-	*/
 	
 	// Prato
 	Model = mat4(1.0);

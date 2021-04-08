@@ -32,6 +32,7 @@ void loadFigure(Figura *fig) {
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, fig->ni * sizeof(unsigned int), &(fig->i[0]), GL_STATIC_DRAW);
+	glBindVertexArray(0);
 }
 
 void reloadFigure(Figura *fig) {
@@ -39,13 +40,16 @@ void reloadFigure(Figura *fig) {
 	//glBindVertexArray(fig->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, fig->VBO);
 	glBufferData(GL_ARRAY_BUFFER, fig->nv * sizeof(Vertex), &(fig->v[0]), GL_STATIC_DRAW);
+	glBindVertexArray(0);
 }
 
 void drawFigure(Figura *fig) {
 	if (fig == NULL) return;
 	glBindVertexArray(fig->VAO);
+	//glBindBuffer(GL_ARRAY_BUFFER, fig->VBO);
 	glDrawElements(GL_TRIANGLES, fig->ni, GL_UNSIGNED_INT, 0);
 	//glDrawArrays(GL_POINTS, 0, fig->nv);
+	glBindVertexArray(0);
 }
 
 Figura* ellisse(const float cx, const float cy, const float rx, const float ry,
