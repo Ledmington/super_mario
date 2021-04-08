@@ -25,7 +25,9 @@ const float blu_notte[] = {0, 22.0/255.0, 60.0/255.0, 1};
 const float verde_prato[] = {96.0/255.0, 157.0/255.0, 13.0/255.0, 1};
 const float marrone_pavimento[] = {170.0/255.0, 68.0/255.0, 0, 1};
 const float giallo[] = {1, 1, 0, 1};
+const float bordo_stelle[] = {1, 1, 0, 0};
 const float bianco[] = { 1, 1, 1, 1 };
+const float bordo_luna[] = {1, 1, 1, 0};
 
 mat4 Projection;
 mat4 Model;
@@ -38,9 +40,9 @@ Figura *pavimento;
 
 const unsigned int num_stelle = 50;
 const float velocita_stelle = width / (60.0 * 60.0); // ogni stella percorre tutta la larghezza dello schermo in un minuto (a 60fps)
-Figura *stelle[num_stelle];
+Figura *stelle[num_stelle] = { NULL };
 
-Figura *luna[2];
+Figura *luna[2] = { NULL };
 
 float randab(const float min, const float max) {
 	return ((float)rand() / (float)RAND_MAX)*(max - min) + min;
@@ -64,12 +66,12 @@ void muovi_stelle(void) {
 		if (isoutside) {
 			destroyFigure(stelle[2 * i]);
 			destroyFigure(stelle[2 * i + 1]);
-			const float cx = width + 20;
+			const float cx = width + 10 + rand()%30;
 			const float cy = randab(altezza_prato, height);
 			const float angle = randab(0, 2 * PI);
 			const float r = randab(2, 3);
 			// Alone luminoso
-			stelle[2 * i] = stella(cx, cy, r * 4, r * 4, r * 2, r * 2, 5, angle, giallo, blu_notte);
+			stelle[2 * i] = stella(cx, cy, r * 4, r * 4, r * 2, r * 2, 5, angle, giallo, bordo_stelle);
 			loadFigure(stelle[2 * i]);
 			// la stella vera e propria
 			stelle[2 * i + 1] = stella(cx, cy, r * 2, r * 2, r, r, 5, angle, bianco, giallo);
@@ -118,7 +120,7 @@ void INIT_VAOs(void)
 		const float angle = randab(0, 2 * PI);
 		const float raggio = randab(2, 3);
 		// Per ogni stella, disegno prima l'alone luminoso
-		stelle[2 * i] = stella(cx, cy, raggio*4, raggio*4, raggio*2, raggio*2, 5, angle, giallo, blu_notte);
+		stelle[2 * i] = stella(cx, cy, raggio*4, raggio*4, raggio*2, raggio*2, 5, angle, giallo, bordo_stelle);
 		loadFigure(stelle[2 * i]);
 		// Poi la stella vera e propria
 		stelle[2 * i + 1] = stella(cx, cy, raggio*2, raggio*2, raggio, raggio, 5, angle, bianco, giallo);
@@ -129,7 +131,7 @@ void INIT_VAOs(void)
 	const float r_luna = 10;
 	const float cx_luna = randab(r_luna, width-r_luna);
 	const float cy_luna = height * 9 / 10;
-	luna[0] = ellisse(cx_luna, cy_luna, r_luna*2, r_luna*2, 30, 2*PI, 0, bianco, blu_notte); // alone
+	luna[0] = ellisse(cx_luna, cy_luna, r_luna*2, r_luna*2, 30, 2*PI, 0, bianco, bordo_luna); // alone
 	luna[1] = ellisse(cx_luna, cy_luna, r_luna, r_luna, 30, 2*PI, 0, bianco, bianco); // luna
 	loadFigure(luna[0]);
 	loadFigure(luna[1]);
@@ -176,11 +178,14 @@ void drawScene(void)
 		drawFigure(stelle[i]);
 	}
 
+	/*
 	// Luna
 	Model = mat4(1.0);
+	Model = scale(Model, vec3(50, 50, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(luna[0]);
 	drawFigure(luna[1]);
+	*/
 	
 	// Prato
 	Model = mat4(1.0);
@@ -228,6 +233,10 @@ int main(int argc, char* argv[])
 	//Chiedo che mi venga restituito l'identificativo della variabile uniform mat4 Model (in vertex shader)
 	//Questo identificativo sarà poi utilizzato per il trasferimento della matrice Model al Vertex Shader
 	matrixModel = glGetUniformLocation(programId, "Model");
+
+	glEnable(GL_BLEND);
+	glEnable(GL_ALPHA_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glutMainLoop();
 
