@@ -50,6 +50,7 @@ float randab(const float min, const float max) {
 
 void muovi_stelle(void) {
 	for (unsigned int i = 0; i < num_stelle; i++) {
+		if (stelle[2 * i] == NULL || stelle[2 * i + 1] == NULL) continue;
 		// Controllo sia la stella che l'alone luminoso
 		bool isoutside = true;
 		for (unsigned int j = 0; j < stelle[2*i]->nv; j++) {
@@ -96,6 +97,12 @@ void update(int value) {
 	cout << "luna: " << luna[0]->v[0].x << ", " << luna[0]->v[0].y << endl;
 	cout << "ultima stella: " << stelle[num_stelle * 2 - 1]->v[0].x << ", " << stelle[num_stelle * 2 - 1]->v[0].y << endl;
 
+	for (unsigned int i = 0; i < 2 * num_stelle; i++) {
+		if (stelle[i] == NULL) cout << "stella n." << i << " NULL" << endl;
+	}
+
+	if (stelle[2 * num_stelle - 1] == luna[1]) cout << "ma che cazzo" << endl;
+
 	glutTimerFunc(60, update, 0);
 	glutPostRedisplay();
 }
@@ -104,8 +111,8 @@ void INIT_VAOs(void)
 {
 	GLenum ErrorCheckValue = glGetError();
 
-	char* vertexShader = (char*)"vertexShader.glsl";
-	char* fragmentShader = (char*)"fragmentShader.glsl";
+	char* vertexShader = (char*) "vertexShader.glsl";
+	char* fragmentShader = (char*) "fragmentShader.glsl";
 
 	programId = ShaderMaker::createProgram(vertexShader, fragmentShader);
 	glUseProgram(programId);
@@ -122,7 +129,7 @@ void INIT_VAOs(void)
 	luna[1] = ellisse(cx_luna, cy_luna, r_luna, r_luna, 30, 2 * PI, 0, bianco, bianco); // luna
 	loadFigure(luna[0]);
 	loadFigure(luna[1]);
-
+	/*
 	// Stelle
 	for (unsigned int i = 0; i < num_stelle; i++) {
 		const float cx = randab(0, width);
@@ -136,7 +143,7 @@ void INIT_VAOs(void)
 		stelle[2 * i + 1] = stella(cx, cy, raggio*2, raggio*2, raggio, raggio, 5, angle, bianco, giallo);
 		loadFigure(stelle[2 * i + 1]);
 	}
-
+	*/
 	// Prato
 	prato = rettangolo(0, 1, 0, 1, verde_prato);
 	loadFigure(prato);
@@ -162,8 +169,10 @@ void drawScene(void)
 {
 	cout << "drawScene" << endl;
 
-	glUniformMatrix4fv(matrixProj, 1, GL_FALSE, value_ptr(Projection));
+	glUniformMatrix4fv((GLint)matrixProj, 1, GL_FALSE, value_ptr(Projection));
+	assertNoError();
 	glClear(GL_COLOR_BUFFER_BIT);
+	assertNoError();
 
 	// Cielo
 	Model = mat4(1.0);
@@ -177,13 +186,13 @@ void drawScene(void)
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(luna[0]);
 	drawFigure(luna[1]);
-
+	/*
 	// Stelle
 	Model = mat4(1.0);
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	for (unsigned int i = 0; i < 2 * num_stelle; i++) {
 		drawFigure(stelle[i]);
-	}
+	}*/
 	
 	// Prato
 	Model = mat4(1.0);
@@ -218,8 +227,10 @@ int main(int argc, char* argv[])
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("Super Mario");
 	glutDisplayFunc(drawScene);
+	assertNoError();
 
 	glutTimerFunc(60, update, 0);
+	assertNoError();
 
 	glewExperimental = GL_TRUE;
 	glewInit();
@@ -231,10 +242,11 @@ int main(int argc, char* argv[])
 	//Chiedo che mi venga restituito l'identificativo della variabile uniform mat4 Model (in vertex shader)
 	//Questo identificativo sarà poi utilizzato per il trasferimento della matrice Model al Vertex Shader
 	matrixModel = glGetUniformLocation(programId, "Model");
+	assertNoError();
 
 	glEnable(GL_BLEND);
-	glEnable(GL_ALPHA_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	assertNoError();
 
 	glutMainLoop();
 

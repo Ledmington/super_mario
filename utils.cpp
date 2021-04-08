@@ -1,12 +1,24 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>
+#include <stdbool.h>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
 #include "utils.h"
 
 using namespace std;
+
+void assertNoError() {
+	GLenum ErrorCheckValue = glGetError();
+	if (ErrorCheckValue != GL_NO_ERROR) {
+		do {
+			fprintf(stderr, "\nERROR: %s\n", gluErrorString(ErrorCheckValue));
+			ErrorCheckValue = glGetError();
+		} while (ErrorCheckValue != GL_NO_ERROR);
+		exit(-1);
+	}
+}
 
 void destroyFigure(Figura *f) {
 	if (f != NULL) {
@@ -21,35 +33,55 @@ void loadFigure(Figura *fig) {
 	unsigned int EBO;
 
 	glGenVertexArrays(1, &(fig->VAO));
+	assertNoError();
 	glBindVertexArray(fig->VAO);
+	assertNoError();
 	glGenBuffers(1, &(fig->VBO));
+	assertNoError();
 	glBindBuffer(GL_ARRAY_BUFFER, fig->VBO);
+	assertNoError();
 	glBufferData(GL_ARRAY_BUFFER, fig->nv * sizeof(Vertex), &(fig->v[0]), GL_STATIC_DRAW);
+	assertNoError();
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+	assertNoError();
 	glEnableVertexAttribArray(0);
+	assertNoError();
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+	assertNoError();
 	glEnableVertexAttribArray(1);
+	assertNoError();
 	glGenBuffers(1, &EBO);
+	assertNoError();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	assertNoError();
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, fig->ni * sizeof(unsigned int), &(fig->i[0]), GL_STATIC_DRAW);
+	assertNoError();
 	glBindVertexArray(0);
+	assertNoError();
 }
 
 void reloadFigure(Figura *fig) {
 	if (fig == NULL) return;
 	//glBindVertexArray(fig->VAO);
+	assertNoError();
 	glBindBuffer(GL_ARRAY_BUFFER, fig->VBO);
+	assertNoError();
 	glBufferData(GL_ARRAY_BUFFER, fig->nv * sizeof(Vertex), &(fig->v[0]), GL_STATIC_DRAW);
+	assertNoError();
 	glBindVertexArray(0);
+	assertNoError();
 }
 
 void drawFigure(Figura *fig) {
 	if (fig == NULL) return;
 	glBindVertexArray(fig->VAO);
+	assertNoError();
 	//glBindBuffer(GL_ARRAY_BUFFER, fig->VBO);
 	glDrawElements(GL_TRIANGLES, fig->ni, GL_UNSIGNED_INT, 0);
+	assertNoError();
 	//glDrawArrays(GL_POINTS, 0, fig->nv);
 	glBindVertexArray(0);
+	assertNoError();
 }
 
 Figura* ellisse(const float cx, const float cy, const float rx, const float ry,

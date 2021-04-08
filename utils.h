@@ -27,6 +27,9 @@ typedef struct {
 	unsigned int *i;
 } Figura;
 
+// Utility per controllare se avvengono errori
+void assertNoError();
+
 void destroyFigure(Figura *f);
 void loadFigure(Figura *fig);  // Creates buffers and loads them
 void reloadFigure(Figura *fig);  // Loads just the vertices
