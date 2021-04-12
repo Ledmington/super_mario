@@ -27,7 +27,6 @@ const float marrone_pavimento[] = {170.0/255.0, 68.0/255.0, 0, 1};
 const float giallo[] = {1, 1, 0, 1};
 const float bordo_stelle[] = {1, 1, 0, 0};
 const float bianco[] = { 1, 1, 1, 1 };
-const float bordo_luna[] = {1, 1, 1, 0};
 
 mat4 Projection;
 mat4 Model;
@@ -38,11 +37,9 @@ Figura *cielo = NULL;
 Figura *prato = NULL;
 Figura *pavimento = NULL;
 
-const unsigned int num_stelle = 2;
+const unsigned int num_stelle = 20;
 const float velocita_stelle = width / (60.0 * 60.0); // ogni stella percorre tutta la larghezza dello schermo in un minuto (a 60fps)
 Figura *stelle[num_stelle] = { NULL };
-
-Figura *luna[2] = { NULL };
 
 float randab(const float min, const float max) {
 	return ((float)rand() / (float)RAND_MAX)*(max - min) + min;
@@ -94,14 +91,6 @@ void update(int value) {
 	cout << "update" << endl;
 
 	muovi_stelle();
-	cout << "luna: " << luna[0]->v[0].x << ", " << luna[0]->v[0].y << endl;
-	cout << "ultima stella: " << stelle[num_stelle * 2 - 1]->v[0].x << ", " << stelle[num_stelle * 2 - 1]->v[0].y << endl;
-
-	for (unsigned int i = 0; i < 2 * num_stelle; i++) {
-		if (stelle[i] == NULL) cout << "stella n." << i << " NULL" << endl;
-	}
-
-	if (stelle[2 * num_stelle - 1] == luna[1]) cout << "ma che cazzo" << endl;
 
 	glutTimerFunc(60, update, 0);
 	glutPostRedisplay();
@@ -109,7 +98,8 @@ void update(int value) {
 
 void INIT_VAOs(void)
 {
-	GLenum ErrorCheckValue = glGetError();
+	cout << "init VAOs" << endl;
+	assertNoError();
 
 	char* vertexShader = (char*) "vertexShader.glsl";
 	char* fragmentShader = (char*) "fragmentShader.glsl";
@@ -121,15 +111,6 @@ void INIT_VAOs(void)
 	cielo = rettangolo(0, 1, 0, 1, blu_notte);
 	loadFigure(cielo);
 
-	// Luna
-	const float r_luna = 10;
-	const float cx_luna = randab(r_luna, width - r_luna);
-	const float cy_luna = height * 9 / 10;
-	luna[0] = ellisse(cx_luna, cy_luna, r_luna * 2, r_luna * 2, 30, 2 * PI, 0, bianco, bordo_luna); // alone
-	luna[1] = ellisse(cx_luna, cy_luna, r_luna, r_luna, 30, 2 * PI, 0, bianco, bianco); // luna
-	loadFigure(luna[0]);
-	loadFigure(luna[1]);
-	/*
 	// Stelle
 	for (unsigned int i = 0; i < num_stelle; i++) {
 		const float cx = randab(0, width);
@@ -143,7 +124,7 @@ void INIT_VAOs(void)
 		stelle[2 * i + 1] = stella(cx, cy, raggio*2, raggio*2, raggio, raggio, 5, angle, bianco, giallo);
 		loadFigure(stelle[2 * i + 1]);
 	}
-	*/
+	
 	// Prato
 	prato = rettangolo(0, 1, 0, 1, verde_prato);
 	loadFigure(prato);
@@ -180,19 +161,13 @@ void drawScene(void)
 	Model = scale(Model, vec3(width, height-altezza_prato, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(cielo);
-
-	// Luna
-	Model = mat4(1.0);
-	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
-	drawFigure(luna[0]);
-	drawFigure(luna[1]);
-	/*
+	
 	// Stelle
 	Model = mat4(1.0);
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	for (unsigned int i = 0; i < 2 * num_stelle; i++) {
 		drawFigure(stelle[i]);
-	}*/
+	}
 	
 	// Prato
 	Model = mat4(1.0);
@@ -227,13 +202,16 @@ int main(int argc, char* argv[])
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("Super Mario");
 	glutDisplayFunc(drawScene);
-	assertNoError();
 
 	glutTimerFunc(60, update, 0);
-	assertNoError();
-
+	
 	glewExperimental = GL_TRUE;
 	glewInit();
+	glGetError();
+	/*
+		glewInit apparentemente genera un errore GL_INVALID_ENUM anche se tutti i parametri sono corretti,
+		e funziona comunque. Quindi eliminiamo l'errore dalla coda degli errori e lo ignoriamo.
+	*/
 
 	INIT_VAOs();
 	//Chiedo che mi venga restituito l'identificativo della variabile uniform mat4 Projection (in vertex shader).
