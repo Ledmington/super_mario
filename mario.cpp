@@ -27,7 +27,7 @@ Mario* createMario(const float width, const float height) {
 	const float lunghezza_visiera = width * 0.2;
 
 	// Parametri testa
-	const float altezza_testa = height * 0.25;
+	const float altezza_testa = height * 0.2;
 	const float larghezza_testa = larghezza_cappello;
 	const Point centro_testa = {cx, cy + height - altezza_cappello - altezza_testa/2, 0 };
 	const float diag_testa = sqrt(altezza_testa*altezza_testa + larghezza_testa*larghezza_testa) / 2;
@@ -41,7 +41,7 @@ Mario* createMario(const float width, const float height) {
 	const float larghezza_pupilla = larghezza_occhi * 0.7;
 
 	// Parametri corpo
-	const float altezza_corpo = height * 0.35;
+	const float altezza_corpo = height * 0.28;
 	const float larghezza_corpo = width * 0.5;
 	const Point centro_corpo = {cx, cy+height-altezza_cappello-altezza_testa-altezza_corpo/2, 0};
 	const float larghezza_braccio = width * 0.2;

@@ -17,12 +17,13 @@ const unsigned int height = 500;  // put 720 for 720p
 const unsigned int width = (unsigned int)((float)height * ratio);
 const vec3 center = {(float)width/2, (float)height/2, 0};
 
-const float altezza_prato = height / 2;
+const float altezza_prato = height / 3;
 const float altezza_pavimento = height / 7;
 
 // Colori utili
 const float blu_notte[] = {0, 22.0/255.0, 60.0/255.0, 1};
 const float verde_prato[] = {96.0/255.0, 157.0/255.0, 13.0/255.0, 1};
+const float bordo_colline[] = { 48.0 / 255.0, 89.0 / 255.0, 36.0 / 255.0, 1 };
 const float marrone_pavimento[] = {170.0/255.0, 68.0/255.0, 0, 1};
 const float giallo[] = {1, 1, 0, 1};
 const float bordo_stelle[] = {1, 1, 0, 0};
@@ -36,10 +37,21 @@ unsigned int matrixModel;
 Figura *cielo = NULL;
 Figura *prato = NULL;
 Figura *pavimento = NULL;
+Mario *m = NULL;
+
+const float altezza_mario = 70.0;
+const float larghezza_mario = 60.0;
+const float velocita_mario = 1.0;
 
 const unsigned int num_stelle = 20;
 const float velocita_stelle = width / (60.0 * 60.0); // ogni stella percorre tutta la larghezza dello schermo in un minuto (a 60fps)
 Figura *stelle[num_stelle] = { NULL };
+
+const float altezza_colline = height * 0.1;
+const float larghezza_colline = width * 0.1;
+const float velocita_colline = width / (60.0 * 20.0);
+const unsigned int num_colline = 2 + (unsigned int) (width/larghezza_colline);
+Figura *colline[num_colline] = { NULL };
 
 float randab(const float min, const float max) {
 	return ((float)rand() / (float)RAND_MAX)*(max - min) + min;
@@ -82,6 +94,31 @@ void muovi_stelle(void) {
 	}
 }
 
+void muovi_colline(void) {
+	for (unsigned int i = 0; i < num_colline; i++) {
+
+		bool isoutside = true;
+		for (unsigned int j = 0; j < colline[i]->nv; j++) {
+			colline[i]->v[j].x -= velocita_colline;
+			// Controllo se tutti i vertici di una collina sono fuori dallo schermo
+			if (colline[i]->v[j].x >= 0.0) isoutside = false;
+		}
+
+		// Se la collina è fuori dallo schermo, rientra da destra in una posizione casuale
+		if (isoutside) {
+			destroyFigure(colline[i]);
+			// Ridisegno la collina
+			colline[i] = ellisse(width + 10 + randab(0, 5), altezza_prato,
+				                 larghezza_colline / 2 + randab(1, 20), altezza_colline + randab(1, 20),
+				                 30, PI, 0, verde_prato, bordo_colline);
+			loadFigure(colline[i]);
+		}
+		else {
+			reloadFigure(colline[i]);
+		}
+	}
+}
+
 void update(int value) {
 	/*
 		This function is called approximately 60 times per second.
@@ -91,6 +128,7 @@ void update(int value) {
 	cout << "update" << endl;
 
 	muovi_stelle();
+	muovi_colline();
 
 	glutTimerFunc(60, update, 0);
 	glutPostRedisplay();
@@ -129,9 +167,21 @@ void INIT_VAOs(void)
 	prato = rettangolo(0, 1, 0, 1, verde_prato);
 	loadFigure(prato);
 
+	// Colline
+	for (unsigned int i = 0; i < num_colline; i++) {
+		colline[i] = ellisse(larghezza_colline * (i-1+0.5) + randab(0, 5), altezza_prato,
+			                 larghezza_colline/2 + randab(1, 20), altezza_colline + randab(1, 20),
+			                 30, PI, 0, verde_prato, bordo_colline);
+		loadFigure(colline[i]);
+	}
+
 	// Pavimento
 	pavimento = rettangolo(0, 1, 0, 1, marrone_pavimento);
 	loadFigure(pavimento);
+
+	// Mario
+	m = createMario(1, 1);  // Mario viene scalato dopo
+	loadMario(m);
 
 	glClearColor(1, 1, 1, 1);
 
@@ -176,12 +226,25 @@ void drawScene(void)
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(prato);
 
+	Model = mat4(1.0);
+	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
+	for (unsigned int i = 0; i < num_colline; i++) {
+		drawFigure(colline[i]);
+	}
+
 	// Pavimento
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(0, 0, 0));
 	Model = scale(Model, vec3(width, altezza_pavimento, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(pavimento);
+
+	// Mario
+	Model = mat4(1.0);
+	Model = translate(Model, vec3(0, altezza_pavimento, 0));
+	Model = scale(Model, vec3(larghezza_mario, altezza_mario, 0));
+	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
+	drawMario(m);
 	
 	glutSwapBuffers();
 }
