@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="block.cpp" />
+    <ClCompile Include="GestioneEventi.cpp" />
     <ClCompile Include="goomba.cpp" />
     <ClCompile Include="mario.cpp" />
     <ClCompile Include="ShaderMaker.cpp" />
@@ -165,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="block.h" />
+    <ClInclude Include="GestioneEventi.h" />
     <ClInclude Include="goomba.h" />
     <ClInclude Include="Lib.h" />
     <ClInclude Include="mario.h" />

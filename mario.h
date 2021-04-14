@@ -30,7 +30,9 @@ typedef struct {
 		un rettangolo e un semicerchio per ogni piede.
 	*/
 	Figura* gambe[6];
-	bool jumping;
+	float velocita_y;
+	bool moving;
+	bool going_left;
 } Mario;
 
 /*

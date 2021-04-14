@@ -4,6 +4,7 @@
 #include <GL/freeglut.h>
 #include <stdlib.h>
 #include <time.h>
+#include "GestioneEventi.h"
 
 #include "utils.h"
 #include "goomba.h"
@@ -44,6 +45,8 @@ Mario *m = NULL;
 const float altezza_mario = 70.0;
 const float larghezza_mario = 60.0;
 const float velocita_mario = 1.0;
+float mario_x = 0;
+float mario_y = 0;
 
 const unsigned int num_stelle = 30;
 Figura *stelle[num_stelle] = { NULL };
@@ -123,6 +126,17 @@ void muovi_nuvole(void) {
 	}
 }
 
+void muovi_mario(void) {
+	if (m->moving) {
+		const float v = velocita_mario * ((m->going_left) ? -1 : 1);
+		mario_x += v;
+	}
+	if (mario_y - m->velocita_y < altezza_pavimento) {
+		mario_y = 0.0;
+		m->velocita_y = 0.0;
+	}
+}
+
 void update(int value) {
 	/*
 		This function is called approximately 60 times per second.
@@ -133,6 +147,8 @@ void update(int value) {
 
 	muovi_colline();
 	muovi_nuvole();
+
+	muovi_mario();
 
 	glutTimerFunc(60, update, 0);
 	glutPostRedisplay();
@@ -201,6 +217,9 @@ void INIT_VAOs(void)
 	// Mario
 	m = createMario(1, 1);  // Mario viene scalato dopo
 	loadMario(m);
+	m->velocita_y = 0.0;
+	m->moving = false;
+	m->going_left = false;
 
 	glClearColor(1, 1, 1, 1);
 
@@ -268,7 +287,7 @@ void drawScene(void)
 
 	// Mario
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(0, altezza_pavimento, 0));
+	Model = translate(Model, vec3(mario_x, altezza_pavimento+mario_y, 0));
 	Model = scale(Model, vec3(larghezza_mario, altezza_mario, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawMario(m);
@@ -292,6 +311,8 @@ int main(int argc, char* argv[])
 	glutInitWindowPosition(0, 0);
 	glutCreateWindow("Super Mario");
 	glutDisplayFunc(drawScene);
+	glutKeyboardFunc(keyboardPressedEvent);
+	glutKeyboardUpFunc(keyboardReleasedEvent);
 
 	glutTimerFunc(60, update, 0);
 	
