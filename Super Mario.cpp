@@ -28,6 +28,8 @@ const float marrone_pavimento[] = {170.0/255.0, 68.0/255.0, 0, 1};
 const float giallo[] = {1, 1, 0, 1};
 const float bordo_stelle[] = {1, 1, 0, 0};
 const float bianco[] = { 1, 1, 1, 1 };
+const float grigio_centro_nuvole[] = {0.4, 0.4, 0.4, 0.8};
+const float grigio_bordo_nuvole[] = { 0.5, 0.5, 0.5, 0 };
 
 mat4 Projection;
 mat4 Model;
@@ -43,55 +45,24 @@ const float altezza_mario = 70.0;
 const float larghezza_mario = 60.0;
 const float velocita_mario = 1.0;
 
-const unsigned int num_stelle = 20;
-const float velocita_stelle = width / (60.0 * 60.0); // ogni stella percorre tutta la larghezza dello schermo in un minuto (a 60fps)
+const unsigned int num_stelle = 30;
 Figura *stelle[num_stelle] = { NULL };
 
 const float altezza_colline = height * 0.1;
 const float larghezza_colline = width * 0.1;
 const float velocita_colline = width / (60.0 * 20.0);
 const unsigned int num_colline = 2 + (unsigned int) (width/larghezza_colline);
-Figura *colline[num_colline] = { NULL };
+Figura **colline = { NULL };
+
+const float altezza_nuvole = height * 0.1;
+const float larghezza_nuvole = width * 0.1;
+const float velocita_nuvole = width / (60.0 * 40.0);
+const unsigned int num_nuvole = 10;
+const unsigned int num_cerchi_per_nuvola = 5;
+Figura *nuvole[num_nuvole*num_cerchi_per_nuvola] = { NULL };
 
 float randab(const float min, const float max) {
 	return ((float)rand() / (float)RAND_MAX)*(max - min) + min;
-}
-
-void muovi_stelle(void) {
-	for (unsigned int i = 0; i < num_stelle; i++) {
-		if (stelle[2 * i] == NULL || stelle[2 * i + 1] == NULL) continue;
-		// Controllo sia la stella che l'alone luminoso
-		bool isoutside = true;
-		for (unsigned int j = 0; j < stelle[2*i]->nv; j++) {
-			stelle[2*i]->v[j].x -= velocita_stelle;
-			// Controllo se tutti i vertici di una stella sono fuori dallo schermo
-			if (stelle[2*i]->v[j].x >= 0.0) isoutside = false;
-		}
-		for (unsigned int j = 0; j < stelle[2*i+1]->nv; j++) {
-			stelle[2*i+1]->v[j].x -= velocita_stelle;
-			// Controllo se tutti i vertici di una stella sono fuori dallo schermo
-			if (stelle[2*i+1]->v[j].x >= 0.0) isoutside = false;
-		}
-		// Se la stella è fuori dallo schermo, rientra da destra in una posizione casuale
-		if (isoutside) {
-			destroyFigure(stelle[2 * i]);
-			destroyFigure(stelle[2 * i + 1]);
-			const float cx = width + 10 + rand()%30;
-			const float cy = randab(altezza_prato, height);
-			const float angle = randab(0, 2 * PI);
-			const float r = randab(2, 3);
-			// Alone luminoso
-			stelle[2 * i] = stella(cx, cy, r * 4, r * 4, r * 2, r * 2, 5, angle, giallo, bordo_stelle);
-			loadFigure(stelle[2 * i]);
-			// la stella vera e propria
-			stelle[2 * i + 1] = stella(cx, cy, r * 2, r * 2, r, r, 5, angle, bianco, giallo);
-			loadFigure(stelle[2 * i + 1]);
-		}
-		else {
-			reloadFigure(stelle[2 * i]);
-			reloadFigure(stelle[2 * i + 1]);
-		}
-	}
 }
 
 void muovi_colline(void) {
@@ -119,16 +90,49 @@ void muovi_colline(void) {
 	}
 }
 
+void muovi_nuvole(void) {
+	for (unsigned int n = 0; n < num_nuvole; n++) {
+
+		bool isoutside = true;
+		for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
+			for (unsigned int j = 0; j < nuvole[i]->nv; j++) {
+				nuvole[n*num_cerchi_per_nuvola+i]->v[j].x -= velocita_nuvole;
+				// Controllo se tutti i vertici di una nuvola sono fuori dallo schermo
+				if (nuvole[n*num_cerchi_per_nuvola + i]->v[j].x >= 0.0) isoutside = false;
+			}
+		}
+		
+
+		// Se la collina è fuori dallo schermo, rientra da destra in una posizione casuale
+		if (isoutside) {
+			const float cx = width + randab(50, 100);
+			const float cy = randab(altezza_prato + altezza_nuvole * 2, height - altezza_nuvole * 2);
+			for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
+				destroyFigure(nuvole[n*num_cerchi_per_nuvola + i]);
+				nuvole[n*num_cerchi_per_nuvola + i] = ellisse(cx + randab(-20, 20), cy + randab(-20, 20),
+					randab(larghezza_nuvole / num_cerchi_per_nuvola, larghezza_nuvole / 2), randab(altezza_nuvole / num_cerchi_per_nuvola, altezza_nuvole / 2),
+					30, 2 * PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
+				loadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
+			}
+		}
+		else {
+			for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
+				reloadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
+			}
+		}
+	}
+}
+
 void update(int value) {
 	/*
 		This function is called approximately 60 times per second.
 		This function updates all objects in the scene.
 		The parameter "value" is ignored.
 	*/
-	cout << "update" << endl;
+	//cout << "update" << endl;
 
-	muovi_stelle();
 	muovi_colline();
+	muovi_nuvole();
 
 	glutTimerFunc(60, update, 0);
 	glutPostRedisplay();
@@ -136,7 +140,7 @@ void update(int value) {
 
 void INIT_VAOs(void)
 {
-	cout << "init VAOs" << endl;
+	//cout << "init VAOs" << endl;
 	assertNoError();
 
 	char* vertexShader = (char*) "vertexShader.glsl";
@@ -162,15 +166,30 @@ void INIT_VAOs(void)
 		stelle[2 * i + 1] = stella(cx, cy, raggio*2, raggio*2, raggio, raggio, 5, angle, bianco, giallo);
 		loadFigure(stelle[2 * i + 1]);
 	}
+
+	// Nuvole
+	for (unsigned int n = 0; n < num_nuvole; n++) {
+		const float cx = randab(larghezza_nuvole, width-larghezza_nuvole);
+		const float cy = randab(altezza_prato+altezza_nuvole*2, height-altezza_nuvole*2);
+		
+		for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
+			nuvole[n*num_cerchi_per_nuvola + i] = ellisse(cx+randab(-20, 20), cy+randab(-20, 20),
+				                                          randab(larghezza_nuvole/num_cerchi_per_nuvola, larghezza_nuvole/2), randab(altezza_nuvole / num_cerchi_per_nuvola, altezza_nuvole / 2), 
+				                                          30, 2*PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
+			loadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
+		}
+	}
 	
 	// Prato
 	prato = rettangolo(0, 1, 0, 1, verde_prato);
 	loadFigure(prato);
 
 	// Colline
+	colline = (Figura**)malloc(num_colline * sizeof(Figura*));
+	assert(colline);
 	for (unsigned int i = 0; i < num_colline; i++) {
 		colline[i] = ellisse(larghezza_colline * (i-1+0.5) + randab(0, 5), altezza_prato,
-			                 larghezza_colline/2 + randab(1, 20), altezza_colline + randab(1, 20),
+			                 larghezza_colline/2 + randab(8, 20), altezza_colline + randab(1, 15),
 			                 30, PI, 0, verde_prato, bordo_colline);
 		loadFigure(colline[i]);
 	}
@@ -198,7 +217,7 @@ void INIT_VAOs(void)
 
 void drawScene(void)
 {
-	cout << "drawScene" << endl;
+	//cout << "drawScene" << endl;
 
 	glUniformMatrix4fv((GLint)matrixProj, 1, GL_FALSE, value_ptr(Projection));
 	assertNoError();
@@ -217,6 +236,14 @@ void drawScene(void)
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	for (unsigned int i = 0; i < 2 * num_stelle; i++) {
 		drawFigure(stelle[i]);
+	}
+
+	// Nuvole
+	Model = mat4(1.0);
+	Model = scale(Model, vec3(5, 5, 0));
+	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
+	for (unsigned int i = 0; i < num_nuvole*num_cerchi_per_nuvola; i++) {
+		drawFigure(nuvole[i]);
 	}
 	
 	// Prato
