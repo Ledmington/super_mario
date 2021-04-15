@@ -4,7 +4,6 @@
 #include <GL/freeglut.h>
 #include <stdlib.h>
 #include <time.h>
-#include "GestioneEventi.h"
 
 #include "utils.h"
 #include "goomba.h"
@@ -43,7 +42,7 @@ Figura *pavimento = NULL;
 Mario *m = NULL;
 
 const float altezza_mario = 70.0;
-const float larghezza_mario = 60.0;
+float larghezza_mario = 60.0;
 const float velocita_mario = 1.0;
 float mario_x = 0;
 float mario_y = 0;
@@ -66,6 +65,50 @@ Figura *nuvole[num_nuvole*num_cerchi_per_nuvola] = { NULL };
 
 float randab(const float min, const float max) {
 	return ((float)rand() / (float)RAND_MAX)*(max - min) + min;
+}
+
+void keyboardPressedEvent(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+	case 'a':
+		m->moving = true;
+		if (!m->going_left) {
+			mario_x += larghezza_mario;
+			larghezza_mario *= -1;
+		}
+		m->going_left = true;
+		break;
+
+	case 'd':
+		m->moving = true;
+		if (m->going_left) {
+			mario_x += larghezza_mario;
+			larghezza_mario *= -1;
+		}
+		m->going_left = false;
+		break;
+
+	case 27: // tasto 'ESC'
+		exit(0);
+		break;
+
+	default:
+		break;
+	}
+}
+
+void keyboardReleasedEvent(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+	case 'a': case 'd':
+		m->moving = false;
+		break;
+
+	default:
+		break;
+	}
 }
 
 void muovi_colline(void) {
@@ -287,7 +330,7 @@ void drawScene(void)
 
 	// Mario
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(mario_x, altezza_pavimento+mario_y, 0));
+	Model = translate(Model, vec3(mario_x, altezza_pavimento + mario_y, 0));
 	Model = scale(Model, vec3(larghezza_mario, altezza_mario, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawMario(m);

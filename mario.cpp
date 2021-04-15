@@ -182,3 +182,33 @@ void destroyMario(Mario *m) {
 	}
 	free(m);
 }
+
+void flipMario(Mario *m, const float cx) {
+	for (int i = 0; i < 2; i++) {
+		flipAroundX(m->cappello[i], cx);
+	}
+	for (int i = 0; i < 8; i++) {
+		flipAroundX(m->testa[i], cx);
+	}
+	for (int i = 0; i < 10; i++) {
+		flipAroundX(m->corpo[i], cx);
+	}
+	for (int i = 0; i < 6; i++) {
+		flipAroundX(m->gambe[i], cx);
+	}
+}
+
+void reloadMario(Mario *m) {
+	for (int i = 0; i < 2; i++) {
+		reloadFigure(m->cappello[i]);
+	}
+	for (int i = 0; i < 8; i++) {
+		reloadFigure(m->testa[i]);
+	}
+	for (int i = 0; i < 10; i++) {
+		reloadFigure(m->corpo[i]);
+	}
+	for (int i = 0; i < 6; i++) {
+		reloadFigure(m->gambe[i]);
+	}
+}

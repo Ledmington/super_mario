@@ -40,6 +40,8 @@ typedef struct {
 	[0;width] ; [0;height]
 */
 Mario* createMario(const float width, const float height);
+void flipMario(Mario *m, const float cx);
 void loadMario(Mario *m);
+void reloadMario(Mario *m);
 void drawMario(Mario *m);
 void destroyMario(Mario *m);
