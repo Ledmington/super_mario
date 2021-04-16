@@ -43,9 +43,7 @@ Mario *m = NULL;
 
 const float altezza_mario = 70.0;
 float larghezza_mario = 60.0;
-const float velocita_mario = 1.0;
-float mario_x = 0;
-float mario_y = 0;
+const float max_velocita_x_mario = 5.0;
 
 const unsigned int num_stelle = 30;
 Figura *stelle[num_stelle] = { NULL };
@@ -72,19 +70,19 @@ void keyboardPressedEvent(unsigned char key, int x, int y)
 	switch (key)
 	{
 	case 'a':
-		m->moving = true;
+		m->accelerazione.x = -1.0;
 		if (!m->going_left) {
-			mario_x += larghezza_mario;
 			larghezza_mario *= -1;
+			m->posizione.x -= larghezza_mario;
 		}
 		m->going_left = true;
 		break;
 
 	case 'd':
-		m->moving = true;
+		m->accelerazione.x = 1.0;
 		if (m->going_left) {
-			mario_x += larghezza_mario;
 			larghezza_mario *= -1;
+			m->posizione.x -= larghezza_mario;
 		}
 		m->going_left = false;
 		break;
@@ -103,7 +101,7 @@ void keyboardReleasedEvent(unsigned char key, int x, int y)
 	switch (key)
 	{
 	case 'a': case 'd':
-		m->moving = false;
+		m->accelerazione.x = 0.0;
 		break;
 
 	default:
@@ -170,13 +168,28 @@ void muovi_nuvole(void) {
 }
 
 void muovi_mario(void) {
-	if (m->moving) {
-		const float v = velocita_mario * ((m->going_left) ? -1 : 1);
-		mario_x += v;
-	}
-	if (mario_y - m->velocita_y < altezza_pavimento) {
-		mario_y = 0.0;
-		m->velocita_y = 0.0;
+	printf("Pos: (%f, %f)\n", m->posizione.x, m->posizione.y);
+	printf("Vel: (%f, %f)\n", m->velocita.x, m->velocita.y);
+	printf("Acc: (%f, %f)\n", m->accelerazione.x, m->accelerazione.y);
+	printf("======\n");
+
+	// Updating position
+	m->posizione.x += m->velocita.x;
+	m->posizione.y += m->velocita.y;
+
+	// Updating velocity
+	m->velocita.x = (m->velocita.x + m->accelerazione.x) * 0.9;
+	if (fabs(m->velocita.x) <= 0.1) m->velocita.x = 0.0;
+	if (m->velocita.x > max_velocita_x_mario) m->velocita.x = max_velocita_x_mario;
+	if (m->velocita.x < -max_velocita_x_mario) m->velocita.x = -max_velocita_x_mario;
+	m->velocita.y += m->accelerazione.y;
+
+	// We update acceleration on the events keyPressed and keyReleased, so no need to do it here
+
+	if (m->posizione.y < altezza_pavimento) {
+		m->posizione.y = 0.0;
+		m->velocita.y = 0.0;
+		m->accelerazione.y = 0.0;
 	}
 }
 
@@ -260,8 +273,9 @@ void INIT_VAOs(void)
 	// Mario
 	m = createMario(1, 1);  // Mario viene scalato dopo
 	loadMario(m);
-	m->velocita_y = 0.0;
-	m->moving = false;
+	m->accelerazione = { 0, 0, 0 };
+	m->posizione = {0, 0, 0};
+	m->velocita = {0, 0, 0};
 	m->going_left = false;
 
 	glClearColor(1, 1, 1, 1);
@@ -330,7 +344,7 @@ void drawScene(void)
 
 	// Mario
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(mario_x, altezza_pavimento + mario_y, 0));
+	Model = translate(Model, vec3(m->posizione.x, altezza_pavimento + m->posizione.y, 0));
 	Model = scale(Model, vec3(larghezza_mario, altezza_mario, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawMario(m);
