@@ -87,6 +87,13 @@ void keyboardPressedEvent(unsigned char key, int x, int y)
 		m->going_left = false;
 		break;
 
+	case 'w':
+		if (!m->jumping) {
+			m->accelerazione.y = 3.0;
+		}
+		m->jumping = true;
+		break;
+
 	case 27: // tasto 'ESC'
 		exit(0);
 		break;
@@ -102,6 +109,9 @@ void keyboardReleasedEvent(unsigned char key, int x, int y)
 	{
 	case 'a': case 'd':
 		m->accelerazione.x = 0.0;
+		break;
+
+	case 'w':
 		break;
 
 	default:
@@ -184,12 +194,14 @@ void muovi_mario(void) {
 	if (m->velocita.x < -max_velocita_x_mario) m->velocita.x = -max_velocita_x_mario;
 	m->velocita.y += m->accelerazione.y;
 
-	// We update acceleration on the events keyPressed and keyReleased, so no need to do it here
+	// We update x-acceleration on the events keyPressed and keyReleased, so no need to do it here
+	m->accelerazione.y -= 0.4;
 
-	if (m->posizione.y < altezza_pavimento) {
+	if (m->posizione.y < 0) {
 		m->posizione.y = 0.0;
 		m->velocita.y = 0.0;
 		m->accelerazione.y = 0.0;
+		m->jumping = false;
 	}
 }
 
@@ -277,6 +289,7 @@ void INIT_VAOs(void)
 	m->posizione = {0, 0, 0};
 	m->velocita = {0, 0, 0};
 	m->going_left = false;
+	m->jumping = false;
 
 	glClearColor(1, 1, 1, 1);
 

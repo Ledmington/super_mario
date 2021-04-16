@@ -36,6 +36,7 @@ typedef struct {
 	Point accelerazione;
 
 	bool going_left;
+	bool jumping;
 } Mario;
 
 /*
