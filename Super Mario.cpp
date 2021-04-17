@@ -40,13 +40,16 @@ Figura *cielo = NULL;
 Figura *prato = NULL;
 Figura *pavimento = NULL;
 Mario *m = NULL;
+Goomba *g = NULL;
 
 const float altezza_mario = 70.0;
 float larghezza_mario = 60.0;
 const float max_velocita_x_mario = 5.0;
 
-const unsigned int num_stelle = 30;
-Figura *stelle[num_stelle] = { NULL };
+float velocita_goomba = 3.0;
+
+const unsigned int num_stelle = 50;
+Figura *stelle[2*num_stelle] = { NULL };  // Ogni stella ha il corpo e l'alone luminoso
 
 const float altezza_colline = height * 0.1;
 const float larghezza_colline = width * 0.1;
@@ -178,10 +181,6 @@ void muovi_nuvole(void) {
 }
 
 void muovi_mario(void) {
-	printf("Pos: (%f, %f)\n", m->posizione.x, m->posizione.y);
-	printf("Vel: (%f, %f)\n", m->velocita.x, m->velocita.y);
-	printf("Acc: (%f, %f)\n", m->accelerazione.x, m->accelerazione.y);
-	printf("======\n");
 
 	// Updating position
 	m->posizione.x += m->velocita.x;
@@ -205,6 +204,12 @@ void muovi_mario(void) {
 	}
 }
 
+void muovi_goomba(void) {
+	g->posizione.x += velocita_goomba;
+
+	if (g->posizione.x <= 10.0 || g->posizione.x >= width-30.0) velocita_goomba *= -1;
+}
+
 void update(int value) {
 	/*
 		This function is called approximately 60 times per second.
@@ -217,6 +222,7 @@ void update(int value) {
 	muovi_nuvole();
 
 	muovi_mario();
+	muovi_goomba();
 
 	glutTimerFunc(60, update, 0);
 	glutPostRedisplay();
@@ -237,6 +243,19 @@ void INIT_VAOs(void)
 	cielo = rettangolo(0, 1, 0, 1, blu_notte);
 	loadFigure(cielo);
 
+	// Nuvole
+	for (unsigned int n = 0; n < num_nuvole; n++) {
+		const float cx = randab(larghezza_nuvole, width - larghezza_nuvole);
+		const float cy = randab(altezza_prato + altezza_nuvole * 2, height - altezza_nuvole * 2);
+
+		for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
+			nuvole[n*num_cerchi_per_nuvola + i] = ellisse(cx + randab(-20, 20), cy + randab(-20, 20),
+				randab(larghezza_nuvole / num_cerchi_per_nuvola, larghezza_nuvole / 2), randab(altezza_nuvole / num_cerchi_per_nuvola, altezza_nuvole / 2),
+				30, 2 * PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
+			loadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
+		}
+	}
+
 	// Stelle
 	for (unsigned int i = 0; i < num_stelle; i++) {
 		const float cx = randab(0, width);
@@ -249,19 +268,6 @@ void INIT_VAOs(void)
 		// Poi la stella vera e propria
 		stelle[2 * i + 1] = stella(cx, cy, raggio*2, raggio*2, raggio, raggio, 5, angle, bianco, giallo);
 		loadFigure(stelle[2 * i + 1]);
-	}
-
-	// Nuvole
-	for (unsigned int n = 0; n < num_nuvole; n++) {
-		const float cx = randab(larghezza_nuvole, width-larghezza_nuvole);
-		const float cy = randab(altezza_prato+altezza_nuvole*2, height-altezza_nuvole*2);
-		
-		for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
-			nuvole[n*num_cerchi_per_nuvola + i] = ellisse(cx+randab(-20, 20), cy+randab(-20, 20),
-				                                          randab(larghezza_nuvole/num_cerchi_per_nuvola, larghezza_nuvole/2), randab(altezza_nuvole / num_cerchi_per_nuvola, altezza_nuvole / 2), 
-				                                          30, 2*PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
-			loadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
-		}
 	}
 	
 	// Prato
@@ -290,7 +296,14 @@ void INIT_VAOs(void)
 	m->velocita = {0, 0, 0};
 	m->going_left = false;
 	m->jumping = false;
-
+	
+	// Goomba
+	g = createGoomba(1, 1); // il Goomba viene scalato dopo
+	loadGoomba(g);
+	g->posizione = { width*3/4, 0, 0 };
+	g->alive = true;
+	g->dying = false;
+	
 	glClearColor(1, 1, 1, 1);
 
 	/*
@@ -307,19 +320,28 @@ void INIT_VAOs(void)
 void drawScene(void)
 {
 	//cout << "drawScene" << endl;
-
+	
 	glUniformMatrix4fv((GLint)matrixProj, 1, GL_FALSE, value_ptr(Projection));
 	assertNoError();
 	glClear(GL_COLOR_BUFFER_BIT);
 	assertNoError();
-
+	
 	// Cielo
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(0, altezza_prato, 0));
 	Model = scale(Model, vec3(width, height-altezza_prato, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(cielo);
-	
+
+	// Nuvole
+	Model = mat4(1.0);
+	Model = scale(Model, vec3(5, 5, 0));
+	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
+	for (unsigned int i = 0; i < num_nuvole*num_cerchi_per_nuvola; i++) {
+		printf("(%f, %f)\n", nuvole[i]->v[0].x, nuvole[i]->v[0].y);
+		drawFigure(nuvole[i]);
+	}
+
 	// Stelle
 	Model = mat4(1.0);
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
@@ -327,14 +349,7 @@ void drawScene(void)
 		drawFigure(stelle[i]);
 	}
 
-	// Nuvole
-	Model = mat4(1.0);
-	Model = scale(Model, vec3(5, 5, 0));
-	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
-	for (unsigned int i = 0; i < num_nuvole*num_cerchi_per_nuvola; i++) {
-		drawFigure(nuvole[i]);
-	}
-	
+
 	// Prato
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(0, 0, 0));
@@ -347,20 +362,27 @@ void drawScene(void)
 	for (unsigned int i = 0; i < num_colline; i++) {
 		drawFigure(colline[i]);
 	}
-
+	
 	// Pavimento
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(0, 0, 0));
 	Model = scale(Model, vec3(width, altezza_pavimento, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(pavimento);
-
+	
 	// Mario
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(m->posizione.x, altezza_pavimento + m->posizione.y, 0));
 	Model = scale(Model, vec3(larghezza_mario, altezza_mario, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawMario(m);
+	
+	// Goomba
+	Model = mat4(1.0);
+	Model = translate(Model, vec3(g->posizione.x, g->posizione.y + altezza_pavimento + 20, 0));
+	Model = scale(Model, vec3(20, 20, 0));
+	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
+	drawGoomba(g);
 	
 	glutSwapBuffers();
 }
@@ -406,7 +428,7 @@ int main(int argc, char* argv[])
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	assertNoError();
-
+	
 	glutMainLoop();
 
 	return 0;

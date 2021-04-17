@@ -8,8 +8,11 @@ typedef struct {
 	Figura* corpo; // il semicerchio
 	Figura* piedi[6]; // un rettangolo e due semicerchi per ogni piede
 	Figura* occhi[6]; // due ellissi (e un rettangolo per il sopracciglio) per ogni occhio
+
 	bool alive;
 	bool dying;
+
+	Point posizione;
 } Goomba;
 
 /*
