@@ -8,14 +8,14 @@
 
 using namespace std;
 
-static float arancione_sfondo[] = { 1, 166.0/255.0, 66.0/255.0, 1 };
-static float arancione_punto_int[] = { 1, 91.0 / 255.0, 16.0 / 255.0, 1 };
-static float rosso_mattone[] = {204.0/255.0, 34.0/255.0, 0, 1};
-static float nero[] = {0, 0, 0, 1};
+static float arancione_sfondo[] = { 1.0f, 166.0f/255.0f, 66.0f/255.0f, 1.0f };
+static float arancione_punto_int[] = { 1.0f, 91.0f / 255.0f, 16.0f / 255.0f, 1.0f };
+static float rosso_mattone[] = {204.0f/255.0f, 34.0f/255.0f, 0.0f, 1.0f};
+static float nero[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
 Block* createBlock(const float width, const float height, const bool isspecial, const bool isbroken) {
-	assert(width > 0);
-	assert(height > 0);
+	assert(width > 0.0f);
+	assert(height > 0.0f);
 	if (!isspecial && isbroken) {
 		cout << "ERRORE: un blocco normale non rotto non va disegnato." << endl;
 		return NULL;
@@ -25,19 +25,19 @@ Block* createBlock(const float width, const float height, const bool isspecial, 
 	assert(b);
 
 	// Il blocco è 12x12 pixel
-	const float px_side_x = width / 12.0;
-	const float px_side_y = height / 12.0;
+	const float px_side_x = width / 12.0f;
+	const float px_side_y = height / 12.0f;
 
 	if (isspecial && !isbroken) {
-		b->fig[0] = rettangolo(0, width, 0, height, arancione_sfondo);
+		b->fig[0] = rettangolo(0.0f, width, 0.0f, height, arancione_sfondo);
 		b->fig[1] = rettangolo(px_side_x, px_side_x * 2, px_side_y * 10, px_side_y * 11, nero);
 		b->fig[2] = rettangolo(px_side_x * 10, px_side_x * 11, px_side_y * 10, px_side_y * 11, nero);
 		b->fig[3] = rettangolo(px_side_x, px_side_x * 2, px_side_y, px_side_y * 2, nero);
 		b->fig[4] = rettangolo(px_side_x * 10, px_side_x * 11, px_side_y, px_side_y * 2, nero);
-		b->fig[5] = ellisse(width/2, height*2/3, width*0.3, height*0.2, 30, (float)PI*3/2, -(float)PI/2, arancione_punto_int, arancione_punto_int);
-		b->fig[6] = ellisse(width/2, height*2/3, width*0.2, height*0.1, 30, (float)PI*3/2, -(float)PI/2, arancione_sfondo, arancione_sfondo);
-		b->fig[7] = rettangolo(width*0.45, width*0.55, height*0.25, height/2, arancione_punto_int);
-		b->fig[8] = rettangolo(width*0.45, width*0.55, height*0.1, height*0.2, arancione_punto_int);
+		b->fig[5] = ellisse(width/2.0f, height*2.0f/3.0f, width*0.3f, height*0.2f, 30, (float)PI*3.0f/2.0f, -(float)PI/2.0f, arancione_punto_int, arancione_punto_int);
+		b->fig[6] = ellisse(width/2.0f, height*2.0f/3.0f, width*0.2f, height*0.1f, 30, (float)PI*3.0f/2.0f, -(float)PI/2.0f, arancione_sfondo, arancione_sfondo);
+		b->fig[7] = rettangolo(width*0.45f, width*0.55f, height*0.25f, height/2.0f, arancione_punto_int);
+		b->fig[8] = rettangolo(width*0.45f, width*0.55f, height*0.1f, height*0.2f, arancione_punto_int);
 		for (int i = 9; i < 12; i++) b->fig[i] = NULL;
 	}
 	else if (isspecial && isbroken) {
