@@ -3,10 +3,10 @@
 #include <assert.h>
 #include <math.h>
 
-static float rosso_maglia[] = { 211.0 / 255.0, 0, 11.0 / 255.0, 1 };
-static float blu_tuta[] = {0, 102.0/255.0, 211.0/255.0, 1};
-static float rosa_carne[] = { 1, 227.0 / 255.0, 200.0 / 255.0, 1 };
-static float marrone_scarpe[] = { 138.0 / 255.0, 45.0 / 255.0, 0, 1 };
+static float rosso_maglia[] = { 211.0f / 255.0f, 0.0f, 11.0f / 255.0f, 1.0f };
+static float blu_tuta[] = { 0.0f, 102.0f / 255.0f, 211.0f / 255.0f, 1.0f };
+static float rosa_carne[] = { 1.0f, 227.0f / 255.0f, 200.0f / 255.0f, 1.0f };
+static float marrone_scarpe[] = { 138.0f / 255.0f, 45.0f / 255.0f, 0.0f, 1.0f };
 static float giallo[] = { 1, 1, 0, 1 };
 static float nero[] = { 0, 0, 0, 1 };
 static float bianco[] = { 1, 1, 1, 1 };
@@ -22,40 +22,40 @@ Mario* createMario(const float width, const float height) {
 	const float cy = 0;
 
 	// Parametri cappello
-	const float altezza_cappello = height * 0.15;
-	const float larghezza_cappello = width * 0.3;
-	const float lunghezza_visiera = width * 0.2;
+	const float altezza_cappello = height * 0.15f;
+	const float larghezza_cappello = width * 0.3f;
+	const float lunghezza_visiera = width * 0.2f;
 
 	// Parametri testa
-	const float altezza_testa = height * 0.2;
+	const float altezza_testa = height * 0.2f;
 	const float larghezza_testa = larghezza_cappello;
 	const Point centro_testa = {cx, cy + height - altezza_cappello - altezza_testa/2, 0 };
-	const float diag_testa = sqrt(altezza_testa*altezza_testa + larghezza_testa*larghezza_testa) / 2;
-	const float larghezza_capelli = larghezza_testa * 0.2;
-	const float lunghezza_naso = larghezza_testa * 0.4;
-	const float altezza_naso = lunghezza_naso * 0.8;
-	const float altezza_baffi = altezza_testa * 0.15;
-	const float altezza_occhi = altezza_testa * 0.4;
-	const float larghezza_occhi = larghezza_testa * 0.2;
-	const float altezza_pupilla = altezza_occhi * 0.7;
-	const float larghezza_pupilla = larghezza_occhi * 0.7;
+	const float diag_testa = sqrtf(altezza_testa*altezza_testa + larghezza_testa*larghezza_testa) / 2;
+	const float larghezza_capelli = larghezza_testa * 0.2f;
+	const float lunghezza_naso = larghezza_testa * 0.4f;
+	const float altezza_naso = lunghezza_naso * 0.8f;
+	const float altezza_baffi = altezza_testa * 0.15f;
+	const float altezza_occhi = altezza_testa * 0.4f;
+	const float larghezza_occhi = larghezza_testa * 0.2f;
+	const float altezza_pupilla = altezza_occhi * 0.7f;
+	const float larghezza_pupilla = larghezza_occhi * 0.7f;
 
 	// Parametri corpo
-	const float altezza_corpo = height * 0.28;
-	const float larghezza_corpo = width * 0.5;
+	const float altezza_corpo = height * 0.28f;
+	const float larghezza_corpo = width * 0.5f;
 	const Point centro_corpo = {cx, cy+height-altezza_cappello-altezza_testa-altezza_corpo/2, 0};
-	const float larghezza_braccio = width * 0.2;
-	const float distanza_bretelle = width * 0.1;
-	const float larghezza_bretelle = width * 0.06;
+	const float larghezza_braccio = width * 0.2f;
+	const float distanza_bretelle = width * 0.1f;
+	const float larghezza_bretelle = width * 0.06f;
 	const float altezza_fibbie = larghezza_bretelle; // facciamo le fibbie quadrate
 	const float altezza_bacino = altezza_corpo / 2;
 
 	// Parametri gambe
-	const float altezza_gambe = height * 0.15;
-	const float distanza_gambe = width * 0.05;
-	const float lunghezza_piedi = (width - distanza_gambe) * 0.4;
-	const float larghezza_gambe = width * 0.3;
-	const float altezza_piedi = height * 0.1;
+	const float altezza_gambe = height * 0.15f;
+	const float distanza_gambe = width * 0.05f;
+	const float lunghezza_piedi = (width - distanza_gambe) * 0.4f;
+	const float larghezza_gambe = width * 0.3f;
+	const float altezza_piedi = height * 0.1f;
 
 	// Cappello
 	m->cappello[0] = ellisse(cx, cy+height-altezza_cappello, larghezza_cappello/2+larghezza_capelli, altezza_cappello, 30, (float)PI, 0, rosso_maglia, rosso_maglia);
@@ -126,12 +126,12 @@ Mario* createMario(const float width, const float height) {
 	m->gambe[3] = rettangolo(centro_corpo.x-distanza_gambe/2-larghezza_gambe, centro_corpo.x-distanza_gambe/2-larghezza_gambe/4,
 		                     centro_corpo.y-altezza_corpo/2-altezza_bacino-altezza_gambe-altezza_piedi, centro_corpo.y-altezza_corpo/2-altezza_bacino-altezza_gambe, nero); // piede dx
 	flipAroundX(m->gambe[3], centro_corpo.x);
-	m->gambe[4] = ellisse(centro_corpo.x-distanza_gambe/2-larghezza_gambe*1.1,
+	m->gambe[4] = ellisse(centro_corpo.x-distanza_gambe/2-larghezza_gambe*1.1f,
 		                  centro_corpo.y-altezza_corpo/2-altezza_bacino-altezza_gambe-altezza_piedi,
-		                  altezza_piedi*0.9, altezza_piedi*1.2, 30, (float)PI, 0, nero, nero); // punta scarpa sx
-	m->gambe[5] = ellisse(centro_corpo.x - distanza_gambe / 2 - larghezza_gambe * 1.1,
+		                  altezza_piedi*0.9f, altezza_piedi*1.2f, 30, (float)PI, 0, nero, nero); // punta scarpa sx
+	m->gambe[5] = ellisse(centro_corpo.x - distanza_gambe / 2 - larghezza_gambe * 1.1f,
 		                  centro_corpo.y - altezza_corpo / 2 - altezza_bacino - altezza_gambe - altezza_piedi,
-		                  altezza_piedi*0.9, altezza_piedi*1.2, 30, (float)PI, 0, nero, nero); // punta scarpa sx
+		                  altezza_piedi*0.9f, altezza_piedi*1.2f, 30, (float)PI, 0, nero, nero); // punta scarpa sx
 	flipAroundX(m->gambe[5], centro_corpo.x);
 
 	return m;

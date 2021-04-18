@@ -7,10 +7,10 @@
 
 using namespace std;
 
-static float marrone[] = { 169.0/255.0, 85.0/255.0, 0, 1 };
-static float rosa[] = { 254.0 / 255.0, 186.0 / 255.0, 128.0 / 255.0, 1 };
-static float nero[] = { 0, 0, 0, 1 };
-static float bianco[] = { 1, 1, 1, 1 };
+static float marrone[] = { 169.0f/255.0f, 85.0f/255.0f, 0.0f, 1.0f };
+static float rosa[] = { 254.0f / 255.0f, 186.0f / 255.0f, 128.0f / 255.0f, 1.0f };
+static float nero[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+static float bianco[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 Goomba* createGoomba(const float width, const float height) {
 	Goomba *g = (Goomba*)malloc(sizeof(Goomba));
@@ -20,21 +20,21 @@ Goomba* createGoomba(const float width, const float height) {
 	const float cy = height / 2;
 
 	// Testa
-	const float r = width * 0.8;
+	const float r = width * 0.8f;
 	g->testa[0] = ellisse(cx, cy, r, r, 6, 2 * (float)PI, 0, marrone, marrone);
-	g->testa[1] = ellisse(cx, cy+r*sqrt(3)/2, r/2, r/2, 30, (float)PI, 0, marrone, marrone);
-	g->testa[2] = ellisse(cx+r*3/4, cy-r*sqrt(3)/4, r/2, r/2, 30, (float)PI, -(float)PI / 3 * 2, marrone, marrone);
-	g->testa[3] = ellisse(cx-r*3/4, cy-r*sqrt(3)/4, r/2, r/2, 30, (float)PI, (float)PI / 3 * 2, marrone, marrone);
+	g->testa[1] = ellisse(cx, cy+r*sqrtf(3.0f)/2.0f, r/2.0f, r/2.0f, 30, (float)PI, 0, marrone, marrone);
+	g->testa[2] = ellisse(cx+r*3/4, cy-r*sqrtf(3.0f)/4.0f, r/2, r/2, 30, (float)PI, -(float)PI / 3 * 2, marrone, marrone);
+	g->testa[3] = ellisse(cx-r*3/4, cy-r*sqrtf(3.0f)/4.0f, r/2, r/2, 30, (float)PI, (float)PI / 3 * 2, marrone, marrone);
 
 	// Corpo
-	g->corpo = ellisse(cx, cy-r*sqrt(3)/2, r*0.6, r*0.6, 30, (float)PI, (float)PI, rosa, rosa);
+	g->corpo = ellisse(cx, cy-r*sqrtf(3.0f)/2.0f, r*0.6f, r*0.6f, 30, (float)PI, (float)PI, rosa, rosa);
 
 	// Piedi
-	float rpiccolo = height * 0.2;
-	float rgrande = height * 0.3;
-	float ymin = cy - height * 1.6;
+	float rpiccolo = height * 0.2f;
+	float rgrande = height * 0.3f;
+	float ymin = cy - height * 1.6f;
 	float xmin = cx + rgrande - rpiccolo;
-	float lunghezza = rpiccolo + rgrande + width * 0.5;
+	float lunghezza = rpiccolo + rgrande + width * 0.5f;
 	g->piedi[0] = ellisse(xmin+rpiccolo, ymin+rpiccolo, rpiccolo, rpiccolo, 30, (float)PI, (float)PI/2, nero, nero);
 	g->piedi[1] = ellisse(xmin+lunghezza-rgrande, ymin+rgrande, rgrande, rgrande, 30, (float)PI, -(float)PI/2, nero, nero);
 	Point p[] = {xmin+rpiccolo, ymin, 0,
@@ -50,21 +50,21 @@ Goomba* createGoomba(const float width, const float height) {
 	g->piedi[5] = rettangolo(p, nero);
 
 	// Occhi
-	float larghezza_occhi = width * 0.3;
-	float altezza_occhi = height * 0.7;
-	float larghezza_pupille = width * 0.2;
-	float altezza_pupille = height * 0.5;
-	float distanza_occhi = width * 0.1;
-	float centro_occhio_dx = cx + distanza_occhi + larghezza_occhi / 2;
-	float centro_occhio_sx = cx - distanza_occhi - larghezza_occhi / 2;
+	float larghezza_occhi = width * 0.3f;
+	float altezza_occhi = height * 0.7f;
+	float larghezza_pupille = width * 0.2f;
+	float altezza_pupille = height * 0.5f;
+	float distanza_occhi = width * 0.1f;
+	float centro_occhio_dx = cx + distanza_occhi + larghezza_occhi / 2.0f;
+	float centro_occhio_sx = cx - distanza_occhi - larghezza_occhi / 2.0f;
 	g->occhi[0] = ellisse(centro_occhio_dx, cy, larghezza_occhi/2, altezza_occhi/2, 30, (float)PI*2, 0, bianco, bianco);
 	g->occhi[1] = ellisse(centro_occhio_sx, cy, larghezza_occhi/2, altezza_occhi/2, 30, (float)PI * 2, 0, bianco, bianco);
 	g->occhi[2] = ellisse(centro_occhio_dx, cy, larghezza_pupille/2, altezza_pupille/2, 30, (float)PI * 2, 0, nero, nero);
 	g->occhi[3] = ellisse(centro_occhio_sx, cy, larghezza_pupille/2, altezza_pupille/2, 30, (float)PI * 2, 0, nero, nero);
-	Point sopracciglio[] = {cx, cy+altezza_pupille*0.8, 0,
+	Point sopracciglio[] = {cx, cy+altezza_pupille*0.8f, 0,
 	                        cx+distanza_occhi, cy+altezza_pupille/2, 0,
 	                        cx+2*larghezza_occhi, cy+altezza_pupille, 0,
-							cx+distanza_occhi+2*larghezza_occhi, cy+altezza_pupille*0.8, 0};
+							cx+distanza_occhi+2*larghezza_occhi, cy+altezza_pupille*0.8f, 0};
 	g->occhi[4] = rettangolo(sopracciglio, nero);
 	// Inverto x rispetto a cx
 	g->occhi[5] = rettangolo(sopracciglio, nero);

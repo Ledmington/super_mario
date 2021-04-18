@@ -12,7 +12,7 @@
 
 unsigned int programId;
 
-const float ratio = 16.0 / 9.0;
+const float ratio = 16.0f / 9.0f;
 const unsigned int height = 500;  // put 720 for 720p
 const unsigned int width = (unsigned int)((float)height * ratio);
 const vec3 center = {(float)width/2, (float)height/2, 0};
@@ -21,15 +21,15 @@ const float altezza_prato = height / 3;
 const float altezza_pavimento = height / 7;
 
 // Colori utili
-const float blu_notte[] = {0, 22.0/255.0, 60.0/255.0, 1};
-const float verde_prato[] = {96.0/255.0, 157.0/255.0, 13.0/255.0, 1};
-const float bordo_colline[] = { 48.0 / 255.0, 89.0 / 255.0, 36.0 / 255.0, 1 };
-const float marrone_pavimento[] = {170.0/255.0, 68.0/255.0, 0, 1};
+const float blu_notte[] = {0, 22.0f/255.0f, 60.0f/255.0f, 1};
+const float verde_prato[] = {96.0f/255.0f, 157.0f/255.0f, 13.0f/255.0f, 1};
+const float bordo_colline[] = { 48.0f / 255.0f, 89.0f / 255.0f, 36.0f / 255.0f, 1 };
+const float marrone_pavimento[] = {170.0f/255.0f, 68.0f/255.0f, 0, 1};
 const float giallo[] = {1, 1, 0, 1};
 const float bordo_stelle[] = {1, 1, 0, 0};
 const float bianco[] = { 1, 1, 1, 1 };
-const float grigio_centro_nuvole[] = {0.4, 0.4, 0.4, 0.8};
-const float grigio_bordo_nuvole[] = { 0.5, 0.5, 0.5, 0 };
+const float grigio_centro_nuvole[] = { 0.4f, 0.4f, 0.4f, 0.8f };
+const float grigio_bordo_nuvole[] = { 0.5f, 0.5f, 0.5f, 0 };
 
 mat4 Projection;
 mat4 Model;
@@ -51,15 +51,15 @@ float velocita_goomba = 3.0;
 const unsigned int num_stelle = 50;
 Figura *stelle[2*num_stelle] = { NULL };  // Ogni stella ha il corpo e l'alone luminoso
 
-const float altezza_colline = height * 0.1;
-const float larghezza_colline = width * 0.1;
-const float velocita_colline = width / (60.0 * 20.0);
+const float altezza_colline = height * 0.1f;
+const float larghezza_colline = width * 0.1f;
+const float velocita_colline = width / (60.0f * 20.0f);
 const unsigned int num_colline = 2 + (unsigned int) (width/larghezza_colline);
 Figura **colline = { NULL };
 
-const float altezza_nuvole = height * 0.1;
-const float larghezza_nuvole = width * 0.1;
-const float velocita_nuvole = width / (60.0 * 40.0);
+const float altezza_nuvole = height * 0.1f;
+const float larghezza_nuvole = width * 0.1f;
+const float velocita_nuvole = width / (60.0f * 40.0f);
 const unsigned int num_nuvole = 10;
 const unsigned int num_cerchi_per_nuvola = 5;
 Figura *nuvole[num_nuvole*num_cerchi_per_nuvola] = { NULL };
@@ -138,7 +138,7 @@ void muovi_colline(void) {
 			// Ridisegno la collina
 			colline[i] = ellisse(width + 10 + randab(0, 5), altezza_prato,
 				                 larghezza_colline / 2 + randab(1, 20), altezza_colline + randab(1, 20),
-				                 30, PI, 0, verde_prato, bordo_colline);
+				                 30, (float)PI, 0.0f, verde_prato, bordo_colline);
 			loadFigure(colline[i]);
 		}
 		else {
@@ -168,7 +168,7 @@ void muovi_nuvole(void) {
 				destroyFigure(nuvole[n*num_cerchi_per_nuvola + i]);
 				nuvole[n*num_cerchi_per_nuvola + i] = ellisse(cx + randab(-20, 20), cy + randab(-20, 20),
 					randab(larghezza_nuvole / num_cerchi_per_nuvola, larghezza_nuvole / 2), randab(altezza_nuvole / num_cerchi_per_nuvola, altezza_nuvole / 2),
-					30, 2 * PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
+					30, 2 * (float)PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
 				loadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
 			}
 		}
@@ -187,19 +187,19 @@ void muovi_mario(void) {
 	m->posizione.y += m->velocita.y;
 
 	// Updating velocity
-	m->velocita.x = (m->velocita.x + m->accelerazione.x) * 0.9;
-	if (fabs(m->velocita.x) <= 0.1) m->velocita.x = 0.0;
+	m->velocita.x = (m->velocita.x + m->accelerazione.x) * 0.9f;
+	if (fabs(m->velocita.x) <= 0.1f) m->velocita.x = 0.0f;
 	if (m->velocita.x > max_velocita_x_mario) m->velocita.x = max_velocita_x_mario;
 	if (m->velocita.x < -max_velocita_x_mario) m->velocita.x = -max_velocita_x_mario;
 	m->velocita.y += m->accelerazione.y;
 
 	// We update x-acceleration on the events keyPressed and keyReleased, so no need to do it here
-	m->accelerazione.y -= 0.4;
+	m->accelerazione.y -= 0.4f;
 
-	if (m->posizione.y < 0) {
-		m->posizione.y = 0.0;
-		m->velocita.y = 0.0;
-		m->accelerazione.y = 0.0;
+	if (m->posizione.y < 0.0f) {
+		m->posizione.y = 0.0f;
+		m->velocita.y = 0.0f;
+		m->accelerazione.y = 0.0f;
 		m->jumping = false;
 	}
 }
@@ -251,7 +251,7 @@ void INIT_VAOs(void)
 		for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
 			nuvole[n*num_cerchi_per_nuvola + i] = ellisse(cx + randab(-20, 20), cy + randab(-20, 20),
 				randab(larghezza_nuvole / num_cerchi_per_nuvola, larghezza_nuvole / 2), randab(altezza_nuvole / num_cerchi_per_nuvola, altezza_nuvole / 2),
-				30, 2 * PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
+				30, 2 * (float)PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
 			loadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
 		}
 	}
@@ -260,7 +260,7 @@ void INIT_VAOs(void)
 	for (unsigned int i = 0; i < num_stelle; i++) {
 		const float cx = randab(0, width);
 		const float cy = randab(altezza_prato, height);
-		const float angle = randab(0, 2 * PI);
+		const float angle = randab(0, 2 * (float)PI);
 		const float raggio = randab(2, 3);
 		// Per ogni stella, disegno prima l'alone luminoso
 		stelle[2 * i] = stella(cx, cy, raggio*4, raggio*4, raggio*2, raggio*2, 5, angle, giallo, bordo_stelle);
@@ -278,9 +278,9 @@ void INIT_VAOs(void)
 	colline = (Figura**)malloc(num_colline * sizeof(Figura*));
 	assert(colline);
 	for (unsigned int i = 0; i < num_colline; i++) {
-		colline[i] = ellisse(larghezza_colline * (i-1+0.5) + randab(0, 5), altezza_prato,
+		colline[i] = ellisse(larghezza_colline * (i-1+0.5f) + randab(0, 5), altezza_prato,
 			                 larghezza_colline/2 + randab(8, 20), altezza_colline + randab(1, 15),
-			                 30, PI, 0, verde_prato, bordo_colline);
+			                 30, (float)PI, 0, verde_prato, bordo_colline);
 		loadFigure(colline[i]);
 	}
 
@@ -389,7 +389,7 @@ void drawScene(void)
 
 int main(int argc, char* argv[])
 {
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	glutInit(&argc, argv);
 
 	glutInitContextVersion(4, 0);

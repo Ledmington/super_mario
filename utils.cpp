@@ -29,7 +29,8 @@ void destroyFigure(Figura *f) {
 }
 
 void loadFigure(Figura *fig) {
-	if (fig == NULL) return;
+	assert(fig);
+	
 	unsigned int EBO;
 
 	glGenVertexArrays(1, &(fig->VAO));
@@ -61,7 +62,8 @@ void loadFigure(Figura *fig) {
 }
 
 void reloadFigure(Figura *fig) {
-	if (fig == NULL) return;
+	assert(fig);
+
 	//glBindVertexArray(fig->VAO);
 	assertNoError();
 	glBindBuffer(GL_ARRAY_BUFFER, fig->VBO);
@@ -73,7 +75,8 @@ void reloadFigure(Figura *fig) {
 }
 
 void drawFigure(Figura *fig) {
-	if (fig == NULL) return;
+	assert(fig);
+
 	glBindVertexArray(fig->VAO);
 	assertNoError();
 	//glBindBuffer(GL_ARRAY_BUFFER, fig->VBO);
@@ -119,7 +122,7 @@ Figura* ellisse(const float cx, const float cy, const float rx, const float ry,
 
 	// Vertici
 	fig->v[0] = {cx, cy, 0, colore_centro[0], colore_centro[1], colore_centro[2], colore_centro[3]};
-	for (int i = 1; i < fig->nv; i++) {
+	for (unsigned int i = 1; i < fig->nv; i++) {
 		float x = cos((float)(i - 1)*step)*rx;
 		float y = sin((float)(i - 1)*step)*ry;
 		fig->v[i].x = cx + x*cos(rotazione) - y*sin(rotazione);
@@ -197,7 +200,7 @@ Figura* rettangolo(const float xmin, const float xmax, const float ymin, const f
 	fig->v[2] = { xmax, ymin, 0 };
 	fig->v[3] = { xmax, ymax, 0 };
 
-	for (int i = 0; i < fig->nv; i++) {
+	for (unsigned int i = 0; i < fig->nv; i++) {
 		fig->v[i].r = colore[0];
 		fig->v[i].g = colore[1];
 		fig->v[i].b = colore[2];
@@ -228,7 +231,7 @@ Figura* triangolo(const Point* punti, const float* colore) {
 	fig->i = (unsigned int*)malloc(fig->ni * sizeof(unsigned int));
 	assert(fig->i);
 
-	for (int i = 0; i < fig->nv; i++) {
+	for (unsigned int i = 0; i < fig->nv; i++) {
 		fig->v[i].x = punti[i].x;
 		fig->v[i].y = punti[i].y;
 		fig->v[i].z = punti[i].z;
@@ -271,11 +274,11 @@ Figura* stella(const float cx, const float cy,
 	fig->i = (unsigned int*) malloc(fig->ni * sizeof(unsigned int));
 	assert(fig->i);
 
-	float step = 2 * PI / (float)(fig->nv - 1);
+	float step = 2 * (float)PI / (float)(fig->nv - 1);
 
 	// Vertici
 	fig->v[0] = { cx, cy, 0, colore_centro[0], colore_centro[1], colore_centro[2], colore_centro[3]};
-	for (int i = 1; i < fig->nv; i++) {
+	for (unsigned int i = 1; i < fig->nv; i++) {
 		float x, y;
 		if (i % 2 == 0) {
 			x = cos((float)(i - 1)*step)*Rx;
