@@ -13,6 +13,7 @@ typedef struct {
 	bool dying;
 
 	Point posizione;
+	Point dimensione;
 } Goomba;
 
 /*

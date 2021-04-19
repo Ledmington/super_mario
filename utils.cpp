@@ -29,7 +29,7 @@ void destroyFigure(Figura *f) {
 }
 
 void loadFigure(Figura *fig) {
-	assert(fig);
+	if (fig == NULL) return;
 	
 	unsigned int EBO;
 
@@ -62,7 +62,7 @@ void loadFigure(Figura *fig) {
 }
 
 void reloadFigure(Figura *fig) {
-	assert(fig);
+	if (fig == NULL) return;
 
 	//glBindVertexArray(fig->VAO);
 	assertNoError();
@@ -75,7 +75,7 @@ void reloadFigure(Figura *fig) {
 }
 
 void drawFigure(Figura *fig) {
-	assert(fig);
+	if (fig == NULL) return;
 
 	glBindVertexArray(fig->VAO);
 	assertNoError();

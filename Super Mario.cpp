@@ -41,9 +41,8 @@ Figura *prato = NULL;
 Figura *pavimento = NULL;
 Mario *m = NULL;
 Goomba *g = NULL;
+Block *b = NULL;
 
-const float altezza_mario = 70.0;
-float larghezza_mario = 60.0;
 const float max_velocita_x_mario = 5.0;
 
 float velocita_goomba = 3.0;
@@ -70,13 +69,15 @@ float randab(const float min, const float max) {
 
 void keyboardPressedEvent(unsigned char key, int x, int y)
 {
+	if (!m->alive || m->dying) return;
+
 	switch (key)
 	{
 	case 'a':
 		m->accelerazione.x = -1.0;
 		if (!m->going_left) {
-			larghezza_mario *= -1;
-			m->posizione.x -= larghezza_mario;
+			m->dimensione.x *= -1;
+			m->posizione.x -= m->dimensione.x;
 		}
 		m->going_left = true;
 		break;
@@ -84,8 +85,8 @@ void keyboardPressedEvent(unsigned char key, int x, int y)
 	case 'd':
 		m->accelerazione.x = 1.0;
 		if (m->going_left) {
-			larghezza_mario *= -1;
-			m->posizione.x -= larghezza_mario;
+			m->dimensione.x *= -1;
+			m->posizione.x -= m->dimensione.x;
 		}
 		m->going_left = false;
 		break;
@@ -181,6 +182,13 @@ void muovi_nuvole(void) {
 }
 
 void muovi_mario(void) {
+	if (!m->alive) return;
+
+	if (m->dying) {
+		m->dimensione.y -= 1.0;
+		if (m->dimensione.y <= 0) m->alive = false;
+		return;
+	}
 
 	// Updating position
 	m->posizione.x += m->velocita.x;
@@ -202,12 +210,91 @@ void muovi_mario(void) {
 		m->accelerazione.y = 0.0f;
 		m->jumping = false;
 	}
+	
+	if (fminf(m->posizione.x+m->dimensione.x, m->posizione.x) < 0) {
+		if (m->dimensione.x < 0) {
+			m->posizione.x = m->dimensione.x * -1;
+		}
+		else {
+			m->posizione.x = 0;
+		}
+		m->velocita.x = fmaxf(0, m->velocita.x);
+		m->accelerazione.x = fmaxf(0, m->velocita.x);
+	}
+	if (fmaxf(m->posizione.x + m->dimensione.x, m->posizione.x) > width) {
+		if (m->dimensione.x > 0) {
+			m->posizione.x = width - m->dimensione.x;
+		}
+		else {
+			m->posizione.x = width;
+		}
+		m->velocita.x = fminf(0, m->velocita.x);
+		m->accelerazione.x = fminf(0, m->velocita.x);
+	}
 }
 
 void muovi_goomba(void) {
-	g->posizione.x += velocita_goomba;
+	if (!g->alive) return;
 
-	if (g->posizione.x <= 10.0 || g->posizione.x >= width-30.0) velocita_goomba *= -1;
+	if (g->dying) {
+		g->dimensione.y -= 1.0;
+		g->posizione.y -= 1.0;
+
+		if (g->dimensione.y <= 0.0) g->alive = false;
+	}
+	else {
+		g->posizione.x += velocita_goomba;
+
+		if (g->posizione.x <= 10.0 || g->posizione.x >= width - 30.0) velocita_goomba *= -1;
+	}
+}
+
+void check_mario_goomba(void) {
+	if (!m->alive || m->dying || !g->alive || g->dying) return;
+
+	const Point centro_mario = { (2 * m->posizione.x + m->dimensione.x) / 2,
+								 (2 * m->posizione.y + m->dimensione.y) / 2,
+								 0 };
+	const float destra_mario = fmaxf(m->posizione.x, m->posizione.x + m->dimensione.x);
+	const float sinistra_mario = fminf(m->posizione.x, m->posizione.x + m->dimensione.x);
+
+	const float top_goomba = g->posizione.y + g->dimensione.y;
+	const float destra_goomba = g->posizione.x + g->dimensione.x / 2;
+	const float sinistra_goomba = g->posizione.x - g->dimensione.x / 2;
+
+	const float dist_x = fabs(centro_mario.x - g->posizione.x);
+	const float dist_y = fabs(centro_mario.y - g->posizione.y);
+
+	// Se si toccano
+	if (destra_mario >= sinistra_goomba &&
+		sinistra_mario <= destra_goomba &&
+		dist_x <= (fabs(m->dimensione.x)+g->dimensione.x)/2 &&
+		dist_y <= (m->dimensione.y+g->dimensione.y)/2) {
+
+		/*
+			Se Mario è sopra il Goomba,
+			Mario salta e il Goomba si schiaccia.
+		*/
+		if (dist_y > dist_x) {
+			m->accelerazione.y = fmaxf(3.0, m->accelerazione.y + 3.0);
+			m->velocita.y = fmaxf(0, m->velocita.y);
+			g->dying = true;
+		}
+		// Altrimenti Mario si schiaccia e muore
+		else {
+			m->accelerazione.x = m->accelerazione.y = 0;
+			m->velocita.x = m->velocita.y = 0;
+			m->dying = true;
+			velocita_goomba *= -1;
+		}
+	}
+}
+
+void check_mario_blocco(void) {
+	/*
+		Se Mario sta sotto il blocco e si toccano,
+		Mario viene spinto verso il basso e il blocco si rompe.
+	*/
 }
 
 void update(int value) {
@@ -223,6 +310,9 @@ void update(int value) {
 
 	muovi_mario();
 	muovi_goomba();
+
+	check_mario_goomba();
+	check_mario_blocco();
 
 	glutTimerFunc(60, update, 0);
 	glutPostRedisplay();
@@ -294,15 +384,23 @@ void INIT_VAOs(void)
 	m->accelerazione = { 0, 0, 0 };
 	m->posizione = {0, 0, 0};
 	m->velocita = {0, 0, 0};
+	m->dimensione = {60, 70, 0};
 	m->going_left = false;
 	m->jumping = false;
+	m->alive = true;
+	m->dying = false;
 	
 	// Goomba
 	g = createGoomba(1, 1); // il Goomba viene scalato dopo
 	loadGoomba(g);
-	g->posizione = { width*3/4, 0, 0 };
+	g->posizione = { width*3/4, 20, 0 };
+	g->dimensione = { 20, 20, 0 };
 	g->alive = true;
 	g->dying = false;
+
+	// Blocco
+	b = createBlock(1, 1, true, false);
+	loadBlock(b);
 	
 	glClearColor(1, 1, 1, 1);
 
@@ -338,7 +436,6 @@ void drawScene(void)
 	Model = scale(Model, vec3(5, 5, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	for (unsigned int i = 0; i < num_nuvole*num_cerchi_per_nuvola; i++) {
-		printf("(%f, %f)\n", nuvole[i]->v[0].x, nuvole[i]->v[0].y);
 		drawFigure(nuvole[i]);
 	}
 
@@ -373,16 +470,23 @@ void drawScene(void)
 	// Mario
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(m->posizione.x, altezza_pavimento + m->posizione.y, 0));
-	Model = scale(Model, vec3(larghezza_mario, altezza_mario, 0));
+	Model = scale(Model, vec3(m->dimensione.x, m->dimensione.y, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawMario(m);
 	
 	// Goomba
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(g->posizione.x, g->posizione.y + altezza_pavimento + 20, 0));
-	Model = scale(Model, vec3(20, 20, 0));
+	Model = translate(Model, vec3(g->posizione.x, g->posizione.y + altezza_pavimento, 0));
+	Model = scale(Model, vec3(g->dimensione.x, g->dimensione.y, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawGoomba(g);
+
+	// Blocco
+	Model = mat4(1.0);
+	Model = translate(Model, vec3(400, 100 + altezza_pavimento, 0));
+	Model = scale(Model, vec3(50, 50, 0));
+	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
+	drawBlock(b);
 	
 	glutSwapBuffers();
 }

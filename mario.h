@@ -34,9 +34,13 @@ typedef struct {
 	Point posizione;
 	Point velocita;
 	Point accelerazione;
+	Point dimensione;
 
 	bool going_left;
 	bool jumping;
+
+	bool alive;
+	bool dying;
 } Mario;
 
 /*
