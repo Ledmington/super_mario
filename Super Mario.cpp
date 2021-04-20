@@ -28,8 +28,6 @@ const float marrone_pavimento[] = {170.0f/255.0f, 68.0f/255.0f, 0, 1};
 const float giallo[] = {1, 1, 0, 1};
 const float bordo_stelle[] = {1, 1, 0, 0};
 const float bianco[] = { 1, 1, 1, 1 };
-const float grigio_centro_nuvole[] = { 0.4f, 0.4f, 0.4f, 0.8f };
-const float grigio_bordo_nuvole[] = { 0.5f, 0.5f, 0.5f, 0 };
 
 mat4 Projection;
 mat4 Model;
@@ -55,13 +53,6 @@ const float larghezza_colline = width * 0.1f;
 const float velocita_colline = width / (60.0f * 20.0f);
 const unsigned int num_colline = 2 + (unsigned int) (width/larghezza_colline);
 Figura **colline = { NULL };
-
-const float altezza_nuvole = height * 0.1f;
-const float larghezza_nuvole = width * 0.1f;
-const float velocita_nuvole = width / (60.0f * 40.0f);
-const unsigned int num_nuvole = 10;
-const unsigned int num_cerchi_per_nuvola = 5;
-Figura *nuvole[num_nuvole*num_cerchi_per_nuvola] = { NULL };
 
 float randab(const float min, const float max) {
 	return ((float)rand() / (float)RAND_MAX)*(max - min) + min;
@@ -144,39 +135,6 @@ void muovi_colline(void) {
 		}
 		else {
 			reloadFigure(colline[i]);
-		}
-	}
-}
-
-void muovi_nuvole(void) {
-	for (unsigned int n = 0; n < num_nuvole; n++) {
-
-		bool isoutside = true;
-		for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
-			for (unsigned int j = 0; j < nuvole[i]->nv; j++) {
-				nuvole[n*num_cerchi_per_nuvola+i]->v[j].x -= velocita_nuvole;
-				// Controllo se tutti i vertici di una nuvola sono fuori dallo schermo
-				if (nuvole[n*num_cerchi_per_nuvola + i]->v[j].x >= 0.0) isoutside = false;
-			}
-		}
-		
-
-		// Se la collina è fuori dallo schermo, rientra da destra in una posizione casuale
-		if (isoutside) {
-			const float cx = width + randab(50, 100);
-			const float cy = randab(altezza_prato + altezza_nuvole * 2, height - altezza_nuvole * 2);
-			for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
-				destroyFigure(nuvole[n*num_cerchi_per_nuvola + i]);
-				nuvole[n*num_cerchi_per_nuvola + i] = ellisse(cx + randab(-20, 20), cy + randab(-20, 20),
-					randab(larghezza_nuvole / num_cerchi_per_nuvola, larghezza_nuvole / 2), randab(altezza_nuvole / num_cerchi_per_nuvola, altezza_nuvole / 2),
-					30, 2 * (float)PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
-				loadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
-			}
-		}
-		else {
-			for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
-				reloadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
-			}
 		}
 	}
 }
@@ -276,7 +234,7 @@ void check_mario_goomba(void) {
 			Mario salta e il Goomba si schiaccia.
 		*/
 		if (dist_y > dist_x) {
-			m->accelerazione.y = fmaxf(3.0, m->accelerazione.y + 3.0);
+			m->accelerazione.y = fmaxf(3.0f, m->accelerazione.y + 3.0f);
 			m->velocita.y = fmaxf(0, m->velocita.y);
 			g->dying = true;
 		}
@@ -353,7 +311,6 @@ void update(int value) {
 	//cout << "update" << endl;
 
 	muovi_colline();
-	muovi_nuvole();
 
 	muovi_mario();
 	muovi_goomba();
@@ -379,19 +336,6 @@ void INIT_VAOs(void)
 	// Cielo
 	cielo = rettangolo(0, 1, 0, 1, blu_notte);
 	loadFigure(cielo);
-
-	// Nuvole
-	for (unsigned int n = 0; n < num_nuvole; n++) {
-		const float cx = randab(larghezza_nuvole, width - larghezza_nuvole);
-		const float cy = randab(altezza_prato + altezza_nuvole * 2, height - altezza_nuvole * 2);
-
-		for (unsigned int i = 0; i < num_cerchi_per_nuvola; i++) {
-			nuvole[n*num_cerchi_per_nuvola + i] = ellisse(cx + randab(-20, 20), cy + randab(-20, 20),
-				randab(larghezza_nuvole / num_cerchi_per_nuvola, larghezza_nuvole / 2), randab(altezza_nuvole / num_cerchi_per_nuvola, altezza_nuvole / 2),
-				30, 2 * (float)PI, 0, grigio_centro_nuvole, grigio_bordo_nuvole);
-			loadFigure(nuvole[n*num_cerchi_per_nuvola + i]);
-		}
-	}
 
 	// Stelle
 	for (unsigned int i = 0; i < num_stelle; i++) {
@@ -479,14 +423,6 @@ void drawScene(void)
 	Model = scale(Model, vec3(width, height-altezza_prato, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawFigure(cielo);
-
-	// Nuvole
-	Model = mat4(1.0);
-	Model = scale(Model, vec3(5, 5, 0));
-	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
-	for (unsigned int i = 0; i < num_nuvole*num_cerchi_per_nuvola; i++) {
-		drawFigure(nuvole[i]);
-	}
 
 	// Stelle
 	Model = mat4(1.0);
