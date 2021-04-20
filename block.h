@@ -22,6 +22,9 @@ typedef struct {
 
 	bool special;
 	bool broken;
+
+	Point posizione;
+	Point dimensione;
 } Block;
 
 Block* createBlock(const float width, const float height, const bool isspecial, const bool isbroken);

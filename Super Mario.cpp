@@ -291,10 +291,57 @@ void check_mario_goomba(void) {
 }
 
 void check_mario_blocco(void) {
-	/*
-		Se Mario sta sotto il blocco e si toccano,
-		Mario viene spinto verso il basso e il blocco si rompe.
-	*/
+	if (!m->alive || m->dying) return;
+
+	const Point centro_mario = { (2 * m->posizione.x + m->dimensione.x) / 2,
+								 (2 * m->posizione.y + m->dimensione.y) / 2,
+								 0 };
+
+	const float top_mario = m->posizione.y + m->dimensione.y;
+	const float bot_mario = m->posizione.y;
+	const float destra_mario = fmaxf(m->posizione.x, m->posizione.x + m->dimensione.x);
+	const float sinistra_mario = fminf(m->posizione.x, m->posizione.x + m->dimensione.x);
+
+	const float top_blocco = b->posizione.y + b->dimensione.y;
+	const float bot_blocco = b->posizione.y;
+	const float destra_blocco = b->posizione.x + b->dimensione.x;
+	const float sinistra_blocco = b->posizione.x;
+
+	// Se si toccano da sotto
+	if (top_mario >= bot_blocco &&
+		bot_mario <= bot_blocco &&
+		destra_mario >= sinistra_blocco &&
+		sinistra_mario <= destra_blocco) {
+		m->posizione.y = bot_blocco - m->dimensione.y;
+		m->velocita.y = fminf(0, m->velocita.y);
+		m->accelerazione.y = fminf(0, m->accelerazione.y);
+
+		if (!b->broken) {
+			destroyBlock(b);
+			b = createBlock(1, 1, true, true);
+			loadBlock(b);
+			b->posizione = { 400, 100, 0 };
+			b->dimensione = { 50, 50, 0 };
+		}
+	}
+	// Se si toccano da sinistra
+	else if (destra_mario >= sinistra_blocco &&
+		sinistra_mario <= sinistra_blocco && 
+		bot_mario <= top_blocco &&
+		top_mario >= bot_blocco) {
+		m->posizione.x = (m->dimensione.x < 0) ? sinistra_blocco : sinistra_blocco - m->dimensione.x;
+		m->velocita.x = fminf(0, m->velocita.x);
+		m->accelerazione.x = fminf(0, m->accelerazione.x);
+	}
+	// Se si toccano da destra
+	else if (sinistra_mario <= destra_blocco &&
+		     destra_mario >= destra_blocco &&
+		     bot_mario <= top_blocco &&
+		     top_mario >= bot_blocco) {
+		m->posizione.x = (m->dimensione.x < 0) ? destra_blocco - m->dimensione.x : destra_blocco;
+		m->velocita.x = fmaxf(0, m->velocita.x);
+		m->accelerazione.x = fmaxf(0, m->accelerazione.x);
+	}
 }
 
 void update(int value) {
@@ -401,6 +448,8 @@ void INIT_VAOs(void)
 	// Blocco
 	b = createBlock(1, 1, true, false);
 	loadBlock(b);
+	b->posizione = { 400, 100, 0 };
+	b->dimensione = { 50, 50, 0 };
 	
 	glClearColor(1, 1, 1, 1);
 
@@ -446,7 +495,6 @@ void drawScene(void)
 		drawFigure(stelle[i]);
 	}
 
-
 	// Prato
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(0, 0, 0));
@@ -483,8 +531,8 @@ void drawScene(void)
 
 	// Blocco
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(400, 100 + altezza_pavimento, 0));
-	Model = scale(Model, vec3(50, 50, 0));
+	Model = translate(Model, vec3(b->posizione.x, b->posizione.y + altezza_pavimento, 0));
+	Model = scale(Model, vec3(b->dimensione.y, b->dimensione.y, 0));
 	glUniformMatrix4fv(matrixModel, 1, GL_FALSE, value_ptr(Model));
 	drawBlock(b);
 	

@@ -65,6 +65,9 @@ Block* createBlock(const float width, const float height, const bool isspecial, 
 		b->fig[11] = NULL;
 	}
 
+	b->special = isspecial;
+	b->broken = isbroken;
+
 	return b;
 }
 
